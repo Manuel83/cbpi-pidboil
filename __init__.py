@@ -8,14 +8,23 @@ from modules.core.props import Property
 @cbpi.controller
 class PIDBoil(KettleController):
 
-    a_p = Property.Number("P", True, 0)
-    b_i = Property.Number("I", True, 0)
-    c_d = Property.Number("D", True, 0)
-    d_max_out = Property.Number("max. output %", True, 100)
-    e_boil = Property.Number("Boil Threshold", True, 80)
+    a_p = Property.Number("P", True, 102, description="P Value of PID")
+    b_i = Property.Number("I", True, 100, description="I Value of PID")
+    c_d = Property.Number("D", True, 5, description="D Value of PID")
+    d_max_out = Property.Number("max. output %", True, 100, description="Power which is set above boil threshold")
+    e_boil = Property.Number("Boil Threshold", True, 80,description="Temperatre for Boil threshold. Full power mode!")
+
+    def stop(self):
+        '''
+        Invoked when the automatic is stopped.
+        Normally you switch off the actors and clean up everything
+        :return: None
+        '''
+        super(KettleController, self).stop()
+        self.heater_off()
+
 
     def run(self):
-
 
         sampleTime = 5
         wait_time = 5
@@ -27,8 +36,7 @@ class PIDBoil(KettleController):
 
         while self.is_running():
 
-
-            if self.get_target_temp >= float(self.e_boil):
+            if self.get_target_temp() >= float(self.e_boil):
                 self.heater_on(100)
                 self.sleep(1)
             else:
